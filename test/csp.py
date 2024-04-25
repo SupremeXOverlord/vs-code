@@ -1,4 +1,3 @@
-import turtle as trtl
 import python_weather
 import asyncio
 import time
@@ -55,7 +54,10 @@ def buttonPress():
   asyncio.run(getweather(criteria))
   background.pack()
   test.pack()
-  test.start()
+  for i in range(10):
+    test.start()
+  
+
   secondaryBGR.pack()
   
 
