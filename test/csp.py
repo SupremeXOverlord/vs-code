@@ -3,30 +3,32 @@ import python_weather
 import asyncio
 import time
 import tkinter as tk
+from tkinter import ttk
 #city = input("what city (City, State) " )
 root = tk.Tk()
 root.geometry("1000x500")
 background = tk.Frame(root)
 secondaryBGR = tk.Frame(root)
 background.pack()
-unit = [python_weather.METRIC,python_weather.IMPERIAL]
-
+unit2 = [python_weather.METRIC,python_weather.IMPERIAL]
+work = False
 set = 0
-main = tk.Label(root,text="Computer Science Weather Station",font=("arial","50"))
-main.pack()
 
 
 
-criterion = tk.Label(root,text="Please input desired city's weather",font=("arial","25"))
+
+criterion = tk.Label(background,text="Please Input Desired City's Weather, and Country!",font=("arial","25"))
 criterion.pack()
 
-enterCity= tk.Entry(width="30")
+enterCity= tk.Entry(background,width="30")
 enterCity.pack()
 
 
+test = ttk.Progressbar(background)
+
 
 def spinning_cursor():
-  for i in range(5):
+  for i in range(100):
     for cursor in '\\|/-':
       time.sleep(0.1)
       print(f"\r{cursor}", end="", flush=True)
@@ -36,7 +38,9 @@ def progress_bar():
     time.sleep(0.1)
     print(f"\r{i:02d}: {'#'*(i//2)}", end="", flush=True)
 
-async def getweather(city,):
+
+#main function to get city and get weather
+async def getweather(city):
   async with python_weather.Client(unit=python_weather.IMPERIAL) as client:
 
     weather = await client.get(city)
@@ -46,11 +50,25 @@ async def getweather(city,):
     print(weather.temperature)
 
 def buttonPress():
+  criteria = enterCity.get()
+  background.pack_forget()
+  asyncio.run(getweather(criteria))
+  background.pack()
+  test.pack()
+  test.start()
   secondaryBGR.pack()
-  asyncio.run(getweather(criterion))
+  
 
-submit = tk.Button(text="Submit",command=buttonPress)
+submit = tk.Button(background,text="Submit",command=buttonPress)
 submit.pack()
+
+main = tk.Label(background,text="Computer Science Weather Station",font=("arial","50"))
+main.pack()
+
+
+
+
+
 
 root.mainloop()
 
