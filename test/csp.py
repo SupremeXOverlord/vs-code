@@ -3,19 +3,18 @@ import asyncio
 import time
 import tkinter as tk
 from tkinter import ttk
+import os
 #city = input("what city (City, State) " )
 root = tk.Tk()
 root.geometry("1000x500")
 background = tk.Frame(root)
 secondaryBGR = tk.Frame(root)
 background.pack()
-unit2 = [python_weather.METRIC,python_weather.IMPERIAL]
-work = False
-set = 0
 
-
-
-
+system = ["Metric","Imperial"]
+selSystem = ttk.Combobox(background,values=system)
+selSystem.set("What Temperature system would you Like?")
+selSystem.place(y=200)
 criterion = tk.Label(background,text="Please Input Desired City's Weather, and Country!",font=("arial","25"))
 criterion.pack()
 
@@ -25,41 +24,58 @@ enterCity.pack()
 
 test = ttk.Progressbar(background)
 
+def getSystem():
+    global setSys,ending
+    chosenSys = selSystem.get()
+    if chosenSys == "Imperial":
+      setSys = python_weather.IMPERIAL
+      ending = "°F"
+      print("imperial")
+    elif chosenSys == "Metric":
+      setSys = python_weather.METRIC
+      ending = "°C"
+      print("Metric")
+    else:
+      print("Please select a valid option!")
+      exit()
 
-def spinning_cursor():
-  for i in range(100):
-    for cursor in '\\|/-':
-      time.sleep(0.1)
-      print(f"\r{cursor}", end="", flush=True)
-  
-def progress_bar():
-  for i in range(11):
-    time.sleep(0.1)
-    print(f"\r{i:02d}: {'#'*(i//2)}", end="", flush=True)
+
+#make progress bar go to 100
+def progress():
+    for i in range(100):
+      test.step(1)  # Update progress
+      root.update_idletasks()  # Ensure UI updates
+      time.sleep(0.02)  # Simulate some work
+##############
 
 
-#main function to get city and get weather
+#main function to get weather from city
 async def getweather(city):
-  async with python_weather.Client(unit=python_weather.IMPERIAL) as client:
+  global setSys,ending
+  async with python_weather.Client(unit=setSys) as client:
 
     weather = await client.get(city)
     print("Getting temp for", weather," at current time")
     #spinning_cursor()
     print(weather.country)
-    print(weather.temperature)
+    print(weather.temperature,ending)
+  if __name__ == '__main__':
+    if os.name == 'nt':
+      asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
+
+#function ran when button is pressed
 def buttonPress():
-  criteria = enterCity.get()
-  background.pack_forget()
-  asyncio.run(getweather(criteria))
-  background.pack()
+  
   test.pack()
-  for i in range(10):
-    test.start()
+  getSystem()
+  criteria = enterCity.get()
+  asyncio.run(getweather(criteria))
   
-
+  progress()
+  time.sleep(.4)
+  background.pack_forget()
   secondaryBGR.pack()
-  
 
 submit = tk.Button(background,text="Submit",command=buttonPress)
 submit.pack()
