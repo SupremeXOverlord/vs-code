@@ -26,19 +26,19 @@ if os.name == 'nt':
 #base idea off web
 loop = asyncio.new_event_loop()
 
-def run_loop(loop, stop_event):
+def runLoop(loop, stop):
     asyncio.set_event_loop(loop)
-    while not stop_event.is_set():
+    while not stop.is_set():
         loop.run_until_complete(asyncio.sleep(0.1))
     loop.stop()
     loop.close()
 
-stop_event = threading.Event()
-thread = threading.Thread(target=run_loop, args=(loop, stop_event))
+stop = threading.Event()
+thread = threading.Thread(target=runLoop, args=(loop, stop))
 thread.start()
 
 def on_closing():
-    stop_event.set() 
+    stop.set() 
     thread.join()  
     root.destroy()  
 
