@@ -4,24 +4,56 @@ import time
 import tkinter as tk
 from tkinter import ttk,messagebox
 import os
+import threading
 #imports
-global criteria,FinalTemp
-#basic variables
+
 root = tk.Tk()
 root.geometry("1000x500")
 background = tk.Frame(root)
 secondaryBGR = tk.Frame(root)
-
 system = ["Metric","Imperial"]
-##########
+CityError = False
+SysError = False
+#global variables
+global criteria,FinalTemp
+
+#change settings to window settings
+if os.name == 'nt':
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+
+#optimize ui
+#base idea off web
+loop = asyncio.new_event_loop()
+
+def run_loop(loop, stop_event):
+    asyncio.set_event_loop(loop)
+    while not stop_event.is_set():
+        loop.run_until_complete(asyncio.sleep(0.1))
+    loop.stop()
+    loop.close()
+
+stop_event = threading.Event()
+thread = threading.Thread(target=run_loop, args=(loop, stop_event))
+thread.start()
+
+def on_closing():
+    stop_event.set() 
+    thread.join()  
+    root.destroy()  
+
+root.protocol("WM_DELETE_WINDOW", on_closing)
+##
 
 
 
 
-bar = ttk.Progressbar(background)
+def on_closing():
+    if messagebox.askokcancel("Quit", "Do you want to quit?"):
+        exit()
 
 def getSystem():
-    global setSys,ending
+    global setSys,ending,chosenSys
     chosenSys = selSystem.get()
     if chosenSys == "Imperial":
       setSys = python_weather.IMPERIAL
@@ -33,7 +65,6 @@ def getSystem():
       print("Metric")
     else:
       print("Please select a valid option!")
-      exit()
 
 
 #start progress bar to go once
@@ -41,7 +72,7 @@ def progress():
     for i in range(100):
       bar.step(1)  # Update progress
       root.update_idletasks()  # Ensure UI updates
-      time.sleep(0.02)  # Simulate some work
+      root.after(20)
 #-------------------------------------------------------------
 
 
@@ -66,26 +97,45 @@ async def getweather(city):
   
   
 def buttonPress():
-  global criteria
-  CityErrorCheck()
-  bar.pack()
-  getSystem()
-  criteria = enterCity.get()
-  asyncio.run(getweather(criteria))
-  
-  progress()
-  time.sleep(.08)
-  background.pack_forget()
-  secondaryBGR.pack()
-def CityErrorCheck():
-  global criteria
-  if len (enterCity.get())==0:
-    messagebox.showinfo(title="Error!",message="Please type a city!")
-def SysErrorCheck():
-  if len (enterCity.get())==0:
-    messagebox.showinfo(title="Error!",message="Please select a valid Temperature System!")   
+    CityErrorCheck()
+    SysErrorCheck()
+    if CityError or SysError:
+        return
+    bar.pack()
+    getSystem()
+    criteria = enterCity.get()
 
-  submit = tk.Button(background,text="Submit",command=buttonPress,width=15,height=2,background="White",)
+    # Schedule the task on the background loop
+    asyncio.run_coroutine_threadsafe(getweather(criteria), loop)
+    
+    progress()  # This could potentially be run asynchronously
+    time.sleep(0.08)  # Avoid using time.sleep in async contexts
+    background.pack_forget()
+    secondaryBGR.pack()
+
+
+
+#Check for errors
+def CityErrorCheck():
+    global CityError, error
+    error = False
+    if len(enterCity.get()) == 0:
+        messagebox.showinfo(title="Error!", message="Please type a city!")
+        CityError = True
+    else:
+        CityError = False
+
+def SysErrorCheck():
+    global SysError
+    if selSystem.get() not in ["Imperial", "Metric"]:
+        messagebox.showinfo(title="Error!", message="Please select a valid Temperature System!")
+        SysError = True
+    else:
+        SysError = False
+
+#----------
+# create buttons
+submit = tk.Button(background,text="Submit",command=buttonPress,width=15,height=2,background="White",)
 
 main = tk.Label(background,text="Computer Science Weather Station",font=("arial","50"))
 
@@ -98,6 +148,9 @@ enterCity= tk.Entry(background,width="30")
 
 temp = tk.Label(secondaryBGR,text="test")
 
+bar = ttk.Progressbar(background)
+
+#pack buttons
 background.pack()
 criterion.pack()
 enterCity.pack()
@@ -105,6 +158,8 @@ submit.pack()
 main.pack()
 selSystem.pack()
 temp.pack()
+
+#keep window open
 root.mainloop()
 
 
