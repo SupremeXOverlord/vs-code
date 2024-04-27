@@ -117,7 +117,7 @@ def buttonPress():
     background.pack_forget()
     StrFinal=str(FinalTemp)
     temp.config(text=(StrFinal,ending))
-    CityLabel.config(text=testVar)
+    #CityLabel.config(text=testVar)
     secondaryBGR.pack()
     
 
