@@ -79,20 +79,16 @@ def progress():
 #main function to get weather from city
 
 async def getweather(city):
-  global setSys,ending,FinalTemp,location2
+  global setSys,ending,FinalTemp,weather
   async with python_weather.Client(unit=setSys) as client:
 
     weather = await client.get(city)
+    
     print("Getting temp for", weather," at current time")
-    #spinning_cursor()
     print(weather.country)
     print(weather.temperature,ending)
     FinalTemp = weather.temperature
-    location2 = weather.location()
-    print(location2)
-  if __name__ == '__main__':
-    if os.name == 'nt':
-      asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    
 
 
 #function ran when button is pressed
@@ -101,7 +97,7 @@ async def getweather(city):
   
 def buttonPress():
 
-    global StrFinal,ending
+    global StrFinal,ending,LocYCount
     
     CityErrorCheck()
     SysErrorCheck()
@@ -113,13 +109,18 @@ def buttonPress():
     
     # Schedule the task on the background loop
     asyncio.run_coroutine_threadsafe(getweather(criteria), loop)
-    #testVar = "in " + str(location2)
-    progress()
+    
+    #progress()
+    time.sleep(3)
+    LocYCount = "in " + str(weather.location)+", "+str(weather.country) +" It is Currently"
+
+    FinLabel.config(text=LocYCount)
     background.pack_forget()
     StrFinal=str(FinalTemp)
+    print(weather.precipitation)
     temp.config(text=(StrFinal,ending))
     #CityLabel.config(text=testVar)
-    secondaryBGR.pack()
+    secondaryBGR.pack(pady=20)
     
 
 #Check for errors
@@ -140,9 +141,12 @@ def SysErrorCheck():
     else:
         SysError = False
 
+def precip():
+   
+   FinLabel.config(text="s")
 #----------
 # create buttons
-submit = tk.Button(background,text="Submit",command=buttonPress,width=15,height=2,background="White",)
+submit = tk.Button(background,text="Submit",command=buttonPress,width=15,height=2,background="White")
 
 main = tk.Label(background,text="Computer Science Weather Station",font=("arial","50"))
 
@@ -153,7 +157,7 @@ criterion = tk.Label(background,text="Please Input Desired City!",font=("arial",
 
 enterCity= tk.Entry(background,width="30")
 
-FinLabel=tk.Label(secondaryBGR,text="The Weather is Currently",font=("Arial","50"))
+FinLabel=tk.Label(secondaryBGR,font=("Arial","50"))
 
 CityLabel=tk.Label(secondaryBGR,font=("arial","45"))
 
@@ -161,18 +165,19 @@ temp = tk.Label(secondaryBGR,font=("Arial","50"))
 
 bar = ttk.Progressbar(background,length=500)
 
-precipitation = tk.Button(secondaryBGR,text="Precipitation")
+precipitation = tk.Button(secondaryBGR,text="Precipitation",relief="groove",width="20",height="2",font="arial",command=precip)
 #pack buttons
 background.pack()
 criterion.pack()
 enterCity.pack()
 submit.pack()
+
 main.pack()
 selSystem.pack()
 FinLabel.pack()
 temp.pack()
 CityLabel.pack()
-precipitation.place(x=120)
+precipitation.place(x=120,y=180)
 
 #keep window open
 root.mainloop()
