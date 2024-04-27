@@ -15,7 +15,7 @@ system = ["Metric","Imperial"]
 CityError = False
 SysError = False
 #global variables
-global criteria,FinalTemp
+global FinalTemp
 
 #change settings to window settings
 if os.name == 'nt':
@@ -23,7 +23,7 @@ if os.name == 'nt':
 
 
 #optimize ui
-#base idea off web
+#base idea off web, not a vital function
 loop = asyncio.new_event_loop()
 
 def runLoop(loop, stop):
@@ -71,14 +71,15 @@ def getSystem():
 def progress():
     for i in range(100):
       bar.step(1)  # Update progress
-      root.update_idletasks()  # Ensure UI updates
+      root.update_idletasks() 
       root.after(20)
 #-------------------------------------------------------------
 
 
 #main function to get weather from city
+
 async def getweather(city):
-  global setSys,ending,FinalTemp
+  global setSys,ending,FinalTemp,location2
   async with python_weather.Client(unit=setSys) as client:
 
     weather = await client.get(city)
@@ -87,6 +88,7 @@ async def getweather(city):
     print(weather.country)
     print(weather.temperature,ending)
     FinalTemp = weather.temperature
+    location2 = weather.location()
   if __name__ == '__main__':
     if os.name == 'nt':
       asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
@@ -97,23 +99,27 @@ async def getweather(city):
   
   
 def buttonPress():
+
+    global StrFinal,ending
+    
     CityErrorCheck()
     SysErrorCheck()
     if CityError or SysError:
         return
-    bar.pack()
+    bar.pack(pady=20)
     getSystem()
     criteria = enterCity.get()
-
+    
     # Schedule the task on the background loop
     asyncio.run_coroutine_threadsafe(getweather(criteria), loop)
-    
-    progress()  # This could potentially be run asynchronously
-    time.sleep(0.08)  # Avoid using time.sleep in async contexts
+    #testVar = "in " + str(location2)
+    progress()
     background.pack_forget()
+    StrFinal=str(FinalTemp)
+    temp.config(text=(StrFinal,ending))
+    CityLabel.config(text=testVar)
     secondaryBGR.pack()
-
-
+    
 
 #Check for errors
 def CityErrorCheck():
@@ -139,17 +145,22 @@ submit = tk.Button(background,text="Submit",command=buttonPress,width=15,height=
 
 main = tk.Label(background,text="Computer Science Weather Station",font=("arial","50"))
 
-selSystem = ttk.Combobox(background,values=system)
+selSystem = ttk.Combobox(background,values=system,state="readonly")
 selSystem.set("Imperial")
 
-criterion = tk.Label(background,text="Please Input Desired City's Weather, and Country!",font=("arial","25"))
+criterion = tk.Label(background,text="Please Input Desired City!",font=("arial","25"))
 
 enterCity= tk.Entry(background,width="30")
 
-temp = tk.Label(secondaryBGR,text="test")
+FinLabel=tk.Label(secondaryBGR,text="The Weather is Currently",font=("Arial","50"))
 
-bar = ttk.Progressbar(background)
+CityLabel=tk.Label(secondaryBGR,font=("arial","45"))
 
+temp = tk.Label(secondaryBGR,font=("Arial","50"))
+
+bar = ttk.Progressbar(background,length=500)
+
+precipitation = tk.Button(secondaryBGR,text="Precipitation")
 #pack buttons
 background.pack()
 criterion.pack()
@@ -157,7 +168,10 @@ enterCity.pack()
 submit.pack()
 main.pack()
 selSystem.pack()
+FinLabel.pack()
 temp.pack()
+CityLabel.pack()
+precipitation.place(x=120)
 
 #keep window open
 root.mainloop()
