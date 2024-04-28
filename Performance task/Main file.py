@@ -1,6 +1,5 @@
 import python_weather
 import asyncio
-import time
 import tkinter as tk
 from tkinter import ttk,messagebox
 import os
@@ -56,19 +55,22 @@ def on_closing():
         exit()
 
 def getSystem():
-    global setSys,ending,chosenSys
+    global setSys,ending,chosenSys,PrecipLength,speed
     chosenSys = selSystem.get()
     if chosenSys == "Imperial":
       setSys = python_weather.IMPERIAL
       ending = "°F"
+      PrecipLength="Inches"
+      speed = "Miles"
       print("imperial")
     elif chosenSys == "Metric":
       setSys = python_weather.METRIC
       ending = "°C"
+      PrecipLength = "MM"
+      speed = "KM"
       print("Metric")
     else:
       print("Please select a valid option!")
-
 
 #start progress bar to go once
 def progress():
@@ -99,43 +101,36 @@ async def getweather(city):
 
 #function ran when button is pressed
 
-def determineMeasurement():
-    global PrecipLength,speed
-    if selSystem.get() == "Metric":
-      PrecipLength = "MM"
-      speed = "KM"
-    elif selSystem.get() == "Imperial":
-        PrecipLength="Inches"
-        speed = "Miles"
+
   
 def buttonPress():
-
+    
     global StrFinal,ending,LocYCount,AlUsed
     
     CityErrorCheck()
     SysErrorCheck()
     if CityError or SysError:
         return
-    if AlUsed == True:
-       precipitation.config(text="Precipitation",command=precip)
-       AlUsed=False
+    
     getSystem()
     criteria = enterCity.get()
     # Schedule the task on the background loop
     asyncio.run_coroutine_threadsafe(getweather(criteria), loop)
     
     progress()
+    if AlUsed == True:
+       precipitation.config(text="Precipitation",command=precip)
+       AlUsed=False
     bar.pack_forget()
     LocYCount = "in " + str(weather.location)+", "+str(weather.country) +" It is Currently"
     FinLabel.config(text=LocYCount)
     background.pack_forget()
     StrFinal=str(FinalTemp)
-    print(weather.precipitation)
     temp.config(text=(StrFinal+ending+" and "+str(weather.kind)))
     #CityLabel.config(text=testVar)
     secondaryBGR.pack(pady=20)
     
-    print(python_weather.enums.Locale)
+    
     
     
 
@@ -151,7 +146,6 @@ def CityErrorCheck():
 
 def SysErrorCheck():
     global SysError
-    determineMeasurement()
     if selSystem.get() not in ["Imperial", "Metric"]:
         messagebox.showinfo(title="Error!", message="Please select a valid Temperature System!")
         SysError = True
@@ -168,16 +162,19 @@ def precip():
    AlUsed = True
 
 def otherPos():
+    global AlUsed
     print(weather.kind)
     
     progress()
     bar.pack_forget()
-    precipitation.config(text="return?",command=buttonPress)
     AlUsed=True
+    precipitation.config(text="return?",command=buttonPress)
+    
     #"Feels like","Ultraviolet","wind speed","Humidity"]
     selected = others.get()
     if selected == "Feels like":
-        temp.config(text=str(weather.feels_like))
+        FinLabel.config(text="In " + str(weather.location)+" it currently feels like")
+        temp.config(text=str(weather.feels_like)+str(ending))
     elif selected=="Ultraviolet":
         temp.config(text=str(weather.ultraviolet))
         print(weather.ultraviolet)
