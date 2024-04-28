@@ -12,8 +12,12 @@ root.geometry("1000x500")
 background = tk.Frame(root)
 secondaryBGR = tk.Frame(root)
 system = ["Metric","Imperial"]
+Possibilities = ["Feels like","Ultraviolet","wind speed","Humidity"]
 CityError = False
 SysError = False
+AlUsed = False
+MetricDis = "MM"
+MetricSpeed = "KM"
 #global variables
 global FinalTemp
 
@@ -97,12 +101,15 @@ async def getweather(city):
   
 def buttonPress():
 
-    global StrFinal,ending,LocYCount
+    global StrFinal,ending,LocYCount,AlUsed
     
     CityErrorCheck()
     SysErrorCheck()
     if CityError or SysError:
         return
+    if AlUsed == True:
+       precipitation.config(text="Precipitation",command=precip)
+       AlUsed=False
     bar.pack(pady=20)
     getSystem()
     criteria = enterCity.get()
@@ -118,7 +125,7 @@ def buttonPress():
     background.pack_forget()
     StrFinal=str(FinalTemp)
     print(weather.precipitation)
-    temp.config(text=(StrFinal,ending))
+    temp.config(text=(StrFinal+ending))
     #CityLabel.config(text=testVar)
     secondaryBGR.pack(pady=20)
     
@@ -142,11 +149,30 @@ def SysErrorCheck():
         SysError = False
 
 def precip():
-   
-   FinLabel.config(text="s")
+   global AlUsed
+   weather.precipitation
+   FinLabel.config(text="Precipitation in " + str(weather.location)+", "+str(weather.country)+" is currently")
+   temp.config(text=(str(weather.precipitation)+" Inches"))
+   precipitation.config(text="return?",command=buttonPress)
+   AlUsed = True
+
+def otherPos():
+    print(weather.kind)
+    #"Feels like","Ultraviolet","wind speed","Humidity"]
+    selected = others.get()
+    if selected == "Feels like":
+        temp.config(text=str(weather.feels_like))
+    elif selected=="Ultraviolet":
+        temp.config(text=str(weather.ultraviolet))
+        print(weather.ultraviolet)
+    elif selected == "wind speed":
+       temp.config(text=(str(weather.wind_speed) +""+" "+ str(weather.wind_direction)))
+    elif selected =="Humidity":
+       temp.config(text=str(weather.humidity))
+
 #----------
 # create buttons
-submit = tk.Button(background,text="Submit",command=buttonPress,width=15,height=2,background="White")
+submit = tk.Button(background,text="Submit",command=buttonPress,width=15,height=2,background="White",relief="raised")
 
 main = tk.Label(background,text="Computer Science Weather Station",font=("arial","50"))
 
@@ -157,7 +183,7 @@ criterion = tk.Label(background,text="Please Input Desired City!",font=("arial",
 
 enterCity= tk.Entry(background,width="30")
 
-FinLabel=tk.Label(secondaryBGR,font=("Arial","50"))
+FinLabel=tk.Label(secondaryBGR,font=("Arial 50"))
 
 CityLabel=tk.Label(secondaryBGR,font=("arial","45"))
 
@@ -166,19 +192,25 @@ temp = tk.Label(secondaryBGR,font=("Arial","50"))
 bar = ttk.Progressbar(background,length=500)
 
 precipitation = tk.Button(secondaryBGR,text="Precipitation",relief="groove",width="20",height="2",font="arial",command=precip)
+
+OtrLabel = tk.Label(secondaryBGR,text="Others:")
+others = ttk.Combobox(secondaryBGR,values=Possibilities,state="readonly")
+otrConf= ttk.Button(secondaryBGR,text="Confirm",command=otherPos)
 #pack buttons
 background.pack()
 criterion.pack()
 enterCity.pack()
-submit.pack()
+submit.pack(pady=6)
 
 main.pack()
 selSystem.pack()
 FinLabel.pack()
 temp.pack()
 CityLabel.pack()
-precipitation.place(x=120,y=180)
-
+precipitation.pack(pady=5)
+OtrLabel.pack()
+others.pack(pady=15)
+otrConf.pack()
 #keep window open
 root.mainloop()
 
