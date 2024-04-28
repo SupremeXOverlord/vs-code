@@ -19,7 +19,7 @@ AlUsed = False
 #global variables
 global FinalTemp
 
-#change settings to window settings
+# Ensure correct loop policy
 if os.name == 'nt':
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
@@ -35,10 +35,12 @@ def runLoop(loop, stop):
     loop.stop()
     loop.close()
 
+# Start a background thread for handling asyncio tasks
 stop = threading.Event()
 thread = threading.Thread(target=runLoop, args=(loop, stop))
 thread.start()
 
+#so program will stop when window is closed
 def on_closing():
     stop.set() 
     thread.join()  
@@ -47,12 +49,6 @@ def on_closing():
 root.protocol("WM_DELETE_WINDOW", on_closing)
 ##
 
-
-
-
-def on_closing():
-    if messagebox.askokcancel("Quit", "Do you want to quit?"):
-        exit()
 
 def getSystem():
     global setSys,ending,chosenSys,PrecipLength,speed
@@ -99,10 +95,10 @@ async def getweather(city):
     
 
 
-#function ran when button is pressed
 
 
-  
+
+# Main function for fetching weather data and updating the UI
 def buttonPress():
     
     global StrFinal,ending,LocYCount,AlUsed
@@ -112,9 +108,9 @@ def buttonPress():
     if CityError or SysError:
         return
     
+     # Get the temperature system and fetch weather data asynchronously
     getSystem()
     criteria = enterCity.get()
-    # Schedule the task on the background loop
     asyncio.run_coroutine_threadsafe(getweather(criteria), loop)
     
     progress()
@@ -138,12 +134,14 @@ def buttonPress():
 def CityErrorCheck():
     global CityError, error
     error = False
+    # Check if the city input is empty, displaying an error message if true
     if len(enterCity.get()) == 0:
         messagebox.showinfo(title="Error!", message="Please type a city!")
         CityError = True
     else:
         CityError = False
 
+# Check for a valid temperature system
 def SysErrorCheck():
     global SysError
     if selSystem.get() not in ["Imperial", "Metric"]:
@@ -214,12 +212,12 @@ precipitation = tk.Button(secondaryBGR,text="Precipitation",relief="groove",widt
 OtrLabel = tk.Label(secondaryBGR,text="Others:")
 others = ttk.Combobox(secondaryBGR,values=Possibilities,state="readonly")
 otrConf= ttk.Button(secondaryBGR,text="Confirm",command=otherPos)
+
 #pack buttons
 background.pack()
 criterion.pack()
 enterCity.pack()
 submit.pack(pady=6)
-
 main.pack()
 selSystem.pack()
 FinLabel.pack()
@@ -229,6 +227,7 @@ precipitation.pack(pady=5)
 OtrLabel.pack()
 others.pack(pady=15)
 otrConf.pack()
+
 #keep window open
 root.mainloop()
 
