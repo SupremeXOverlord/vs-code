@@ -69,10 +69,10 @@ def getSystem():
       print("Please select a valid option!")
 
 #start progress bar to go once
-def progress():
+def progress(steps,stepLen):
     bar.pack(pady=20)
-    for i in range(50):
-      bar.step(2)  # Update progress
+    for i in range(steps):
+      bar.step(stepLen)  # Update progress
       root.update_idletasks() 
       root.after(20)
 
@@ -99,7 +99,7 @@ async def getweather(city):
 
 
 # Main function for fetching weather data and updating the UI
-def buttonPress():
+def buttonPress(SelectedCity,loopAmt):
     
     global StrFinal,ending,LocYCount,AlUsed
     
@@ -111,9 +111,10 @@ def buttonPress():
      # Get the temperature system and fetch weather data asynchronously
     getSystem()
     criteria = enterCity.get()
-    asyncio.run_coroutine_threadsafe(getweather(criteria), loop)
+    asyncio.run_coroutine_threadsafe(getweather(SelectedCity), loop)
     
-    progress()
+    for i in range(loopAmt):
+        progress(50,2)
     if AlUsed == True:
        precipitation.config(text="Precipitation",command=precip)
        AlUsed=False
@@ -152,21 +153,20 @@ def SysErrorCheck():
 
 def precip():
    global AlUsed
-   progress()
+   progress(50,2)
    weather.precipitation
    FinLabel.config(text="Precipitation in " + str(weather.location)+", "+str(weather.country)+" is currently")
    temp.config(text=(str(weather.precipitation)+" "+str(PrecipLength)))
-   precipitation.config(text="return?",command=buttonPress)
+   precipitation.config(text="return?",command=lambda: buttonPress(enterCity.get(),1))
    AlUsed = True
 
 def otherPos():
     global AlUsed
     print(weather.kind)
-    
-    progress()
+    progress(50,2)
     bar.pack_forget()
     AlUsed=True
-    precipitation.config(text="return?",command=buttonPress)
+    precipitation.config(text="return?",command=lambda: buttonPress(enterCity.get(),1))
     
     #"Feels like","Ultraviolet","wind speed","Humidity"]
     selected = others.get()
@@ -188,7 +188,7 @@ def otherPos():
 
 #----------
 # create buttons
-submit = tk.Button(background,text="Submit",command=buttonPress,width=15,height=2,background="White",relief="raised")
+
 
 main = tk.Label(background,text="Computer Science Weather Station",font=("arial","50"))
 
@@ -198,7 +198,7 @@ selSystem.set("Imperial")
 criterion = tk.Label(background,text="Please Input Desired City!",font=("arial","25"))
 
 enterCity= tk.Entry(background,width="30")
-
+submit = tk.Button(background,text="Submit",command=lambda: buttonPress(enterCity.get(),2),width=15,height=2,background="White",relief="raised")
 FinLabel=tk.Label(secondaryBGR,font=("Arial 50"))
 
 CityLabel=tk.Label(secondaryBGR,font=("arial","45"))
@@ -230,5 +230,4 @@ otrConf.pack()
 
 #keep window open
 root.mainloop()
-
 
