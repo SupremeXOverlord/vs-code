@@ -61,13 +61,13 @@ def getSystem():
       setSys = python_weather.IMPERIAL
       ending = "°F"
       PrecipLength="Inches"
-      speed = "Miles"
+      speed = "MPH"
       print("imperial")
     elif chosenSys == "Metric":
       setSys = python_weather.METRIC
       ending = "°C"
       PrecipLength = "MM"
-      speed = "KM"
+      speed = "KMH"
       print("Metric")
     else:
       print("Please select a valid option!")
@@ -175,11 +175,13 @@ def otherPos():
     if selected == "Feels like":
         FinLabel.config(text="In " + str(weather.location)+" it currently feels like")
         temp.config(text=str(weather.feels_like)+str(ending))
-    elif selected=="Ultraviolet":
+    elif selected=="Ultraviolet": #ss
+        FinLabel.config(text="In " + str(weather.location)+" the UV Index is")
         temp.config(text=str(weather.ultraviolet))
         print(weather.ultraviolet)
-    elif selected == "wind speed":
-       temp.config(text=(str(weather.wind_speed) +""+" "+ str(weather.wind_direction)))
+    elif selected == "wind speed": #ss
+       FinLabel.config(text="In " + str(weather.location)+" the wind speed and direction is")
+       temp.config(text=(str(weather.wind_speed) +" "+speed+" heading "+ str(weather.wind_direction)))
     elif selected =="Humidity":
        
        FinLabel.config(text="Humidity Percentage in " + str(weather.location)+" is currently")
