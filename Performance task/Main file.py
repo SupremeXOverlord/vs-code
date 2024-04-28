@@ -16,8 +16,7 @@ Possibilities = ["Feels like","Ultraviolet","wind speed","Humidity"]
 CityError = False
 SysError = False
 AlUsed = False
-MetricDis = "MM"
-MetricSpeed = "KM"
+
 #global variables
 global FinalTemp
 
@@ -73,10 +72,13 @@ def getSystem():
 
 #start progress bar to go once
 def progress():
-    for i in range(100):
-      bar.step(1)  # Update progress
+    bar.pack(pady=20)
+    for i in range(50):
+      bar.step(2)  # Update progress
       root.update_idletasks() 
       root.after(20)
+
+
 #-------------------------------------------------------------
 
 
@@ -97,7 +99,14 @@ async def getweather(city):
 
 #function ran when button is pressed
 
-  
+def determineMeasurement():
+    global PrecipLength,speed
+    if selSystem.get() == "Metric":
+      PrecipLength = "MM"
+      speed = "KM"
+    elif selSystem.get() == "Imperial":
+        PrecipLength="Inches"
+        speed = "Miles"
   
 def buttonPress():
 
@@ -110,24 +119,24 @@ def buttonPress():
     if AlUsed == True:
        precipitation.config(text="Precipitation",command=precip)
        AlUsed=False
-    bar.pack(pady=20)
     getSystem()
     criteria = enterCity.get()
-    
     # Schedule the task on the background loop
     asyncio.run_coroutine_threadsafe(getweather(criteria), loop)
     
-    #progress()
-    time.sleep(3)
+    progress()
+    bar.pack_forget()
     LocYCount = "in " + str(weather.location)+", "+str(weather.country) +" It is Currently"
-
     FinLabel.config(text=LocYCount)
     background.pack_forget()
     StrFinal=str(FinalTemp)
     print(weather.precipitation)
-    temp.config(text=(StrFinal+ending))
+    temp.config(text=(StrFinal+ending+" and "+str(weather.kind)))
     #CityLabel.config(text=testVar)
     secondaryBGR.pack(pady=20)
+    
+    print(python_weather.enums.Locale)
+    
     
 
 #Check for errors
@@ -142,6 +151,7 @@ def CityErrorCheck():
 
 def SysErrorCheck():
     global SysError
+    determineMeasurement()
     if selSystem.get() not in ["Imperial", "Metric"]:
         messagebox.showinfo(title="Error!", message="Please select a valid Temperature System!")
         SysError = True
@@ -150,14 +160,20 @@ def SysErrorCheck():
 
 def precip():
    global AlUsed
+   progress()
    weather.precipitation
    FinLabel.config(text="Precipitation in " + str(weather.location)+", "+str(weather.country)+" is currently")
-   temp.config(text=(str(weather.precipitation)+" Inches"))
+   temp.config(text=(str(weather.precipitation)+" "+str(PrecipLength)))
    precipitation.config(text="return?",command=buttonPress)
    AlUsed = True
 
 def otherPos():
     print(weather.kind)
+    
+    progress()
+    bar.pack_forget()
+    precipitation.config(text="return?",command=buttonPress)
+    AlUsed=True
     #"Feels like","Ultraviolet","wind speed","Humidity"]
     selected = others.get()
     if selected == "Feels like":
@@ -168,7 +184,10 @@ def otherPos():
     elif selected == "wind speed":
        temp.config(text=(str(weather.wind_speed) +""+" "+ str(weather.wind_direction)))
     elif selected =="Humidity":
-       temp.config(text=str(weather.humidity))
+       
+       FinLabel.config(text="Humidity Percentage in " + str(weather.location)+" is currently")
+       temp.config(text=str(str(weather.humidity)+"%"))
+       
 
 #----------
 # create buttons
@@ -189,7 +208,7 @@ CityLabel=tk.Label(secondaryBGR,font=("arial","45"))
 
 temp = tk.Label(secondaryBGR,font=("Arial","50"))
 
-bar = ttk.Progressbar(background,length=500)
+bar = ttk.Progressbar(length=500)
 
 precipitation = tk.Button(secondaryBGR,text="Precipitation",relief="groove",width="20",height="2",font="arial",command=precip)
 
